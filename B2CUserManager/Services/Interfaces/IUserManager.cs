@@ -13,5 +13,7 @@ namespace B2CUserManager.Services.Interfaces
 
         Task<bool> DeleteUser(string id);
 
+        Task<Profile> UpdateUser(Profile user);
+
     }
 }

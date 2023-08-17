@@ -22,7 +22,6 @@ namespace B2CUserManager.Services.Implementations
             var clientId = _b2cSettings.ClientId;
             var clientSecret = _b2cSettings.ClientSecret;
 
-
             var options = new ClientSecretCredentialOptions { AuthorityHost = AzureAuthorityHosts.AzurePublicCloud };
             var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret, options);
             var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
@@ -121,6 +120,27 @@ namespace B2CUserManager.Services.Implementations
                 return true;
             }
             catch (Exception ex) { throw new Exception(ex.Message); }
+        }
+
+        public async Task<Profile> UpdateUser(Profile user)
+        {
+            try
+            {
+                var requestBody = new User
+                {
+                    Surname = user.SureName,
+                    GivenName = user.GivenName
+                };
+
+
+                var result = await _graphClient.Users[$"{user.Id}"].PatchAsync(requestBody);
+
+                return new Profile { GivenName = result.GivenName, DisplayName = result.DisplayName, Email = result.Identities[0].IssuerAssignedId, Id = result.Id, MailNickName = result.MailNickname, SureName = result.Surname, UPN = result.UserPrincipalName };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

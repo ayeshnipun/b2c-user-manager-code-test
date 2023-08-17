@@ -15,6 +15,8 @@ namespace B2CUserManager.Routes
 
             builder.MapDelete("api/user/delete/{id}", (string id, IUserManager userManager) => { return userManager.DeleteUser(id); });
 
+            builder.MapPut("api/user/patch/", (Profile user, IUserManager userManager) => { return userManager.UpdateUser(user); });
+
         }
     }
 }
