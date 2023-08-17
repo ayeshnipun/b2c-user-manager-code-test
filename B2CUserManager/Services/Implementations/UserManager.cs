@@ -22,7 +22,8 @@ namespace B2CUserManager.Services.Implementations
             var clientId = _b2cSettings.ClientId;
             var clientSecret = _b2cSettings.ClientSecret;
 
-            var options = new TokenCredentialOptions { AuthorityHost = AzureAuthorityHosts.AzurePublicCloud };
+
+            var options = new ClientSecretCredentialOptions { AuthorityHost = AzureAuthorityHosts.AzurePublicCloud };
             var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret, options);
             var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
 
@@ -80,12 +81,21 @@ namespace B2CUserManager.Services.Implementations
                     AccountEnabled = true,
                     DisplayName = user.DisplayName,
                     MailNickname = user.MailNickName,
-                    UserPrincipalName = user.Email,
+                    UserPrincipalName = user.UPN,
                     PasswordProfile = new PasswordProfile
                     {
                         ForceChangePasswordNextSignIn = true,
                         Password = "xWwvJ]6NMw+bWH-d",
                     },
+                    Identities = new List<ObjectIdentity>
+                    {
+                        new ObjectIdentity
+                        {
+                            Issuer = _b2cSettings.Tenant,
+                            IssuerAssignedId = user.Email,
+                            SignInType = "emailAddress"
+                        }
+                    }
                 };
 
                 var result = await _graphClient.Users.PostAsync(requestBody);
@@ -101,6 +111,16 @@ namespace B2CUserManager.Services.Implementations
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public async Task<bool> DeleteUser(string id)
+        {
+            try
+            {
+                await _graphClient.Users[$"{id}"].DeleteAsync();
+                return true;
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
         }
     }
 }
